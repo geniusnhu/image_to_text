@@ -41,8 +41,8 @@
 <style>
 .swal2-popup {
   font-size: 1.5rem !important;
-  width: 550px !important;
-  height: 370px !important;
+  width: 400px !important;
+  height: 200px !important;
   background-color: #D5CABB;
   border-radius: 15px;
 }
@@ -186,7 +186,7 @@
     <label class="select" for="image_file" style="font-size:14px;"> (Accept .jpg, .png, .tif)</label>
     <input class="warning" type="file" id="image_file" name="myfile" accept="image/*" onchange="loadFile(event)">
     <br>
-    <button class="button predict" onclick="perform_OCR()"> Extract Text </button>
+    <button class="button predict" onclick="extracting()"> Extract Text </button>
     <br>
 
     <form runat="server">
@@ -227,6 +227,14 @@
     }
   };
 
+  function extracting() {
+    Swal.fire({
+      title: 'Extracting file !',
+      text: 'Please close this and wait for a while !',
+     });
+     perform_OCR();
+  }
+
   function perform_OCR() {
     var files = document.getElementById("image_file").files;
     var formData = new FormData();
@@ -240,8 +248,7 @@
          contentType: false,
          cache: false,
          processData: false,
-         // success:
-         function(data) {
+         success: function(data) {
              Swal.fire({
                title: 'Extraction completed !',
                text: 'Please dowload file by clicking the Download button !',
