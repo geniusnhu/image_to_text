@@ -4,7 +4,7 @@ from azure.cognitiveservices.vision.computervision.models import VisualFeatureTy
 from msrest.authentication import CognitiveServicesCredentials
 
 from array import array
-import os
+import os, io, base64
 from PIL import Image
 import glob
 import numpy as np
@@ -14,13 +14,16 @@ from pathlib import Path
 import argparse
 import imutils
 import time
+import matplotlib.pyplot as plt
 
 
 
-async def get_classification(image):
+async def get_classification(image_bytes):
     # Detect table
-    image = cv2.imread(image)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    #image = cv2.imread(image)
+    image = Image.open(image_bytes).convert('RGB')
+    image = np.array(image)
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 11))
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
     blackhat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, kernel)
@@ -66,6 +69,14 @@ async def get_classification(image):
     for j in range(result.shape[1]):
         crop_img = table[int(68 / 0.5 * scale_percent / 100):int(595/0.5 * scale_percent / 100), columns_px[j*2]:columns_px[j*2+1]]
         cv2.imwrite(images_folder + 'crop_img{}.png'.format(j), crop_img)
+        #im = Image.fromarray(crop_img)
+        #tmpFile = io.BytesIO()
+        #cv2.imwrite(tmpFile, crop_img)
+        #plt.savefig(tmpFile, format='png')
+        #im.save(tmpFile, "PNG")
+        #encoded_img_data = base64.b64encode(tmpFile.getvalue())
+        #tmpFile.seek(0)
+        #tmpFile = tmpFile.read()
 
         # initiate top and bottom pixel
         height, weight , _ = crop_img.shape
@@ -113,6 +124,8 @@ async def get_classification(image):
                 else:
                     result.iloc[i, j] = ''
                 break
+
+        #tmpFile.close()
 
     result.to_csv(images_folder+'result.csv', index = False)
 
