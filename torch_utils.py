@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 import cv2
 from pathlib import Path
-from tqdm import tqdm
 import argparse
 import imutils
 import time
@@ -103,7 +102,7 @@ async def get_classification(image):
         b_box = [line.bounding_box for line in read_result.analyze_result.read_results[0].lines]
 
         # Loop by line
-        for i in tqdm(range(26)):
+        for i in range(26):
             top = start + cel_height*i
             bottom = start + cel_height*(i+1)
             for idx, box in enumerate(b_box):
