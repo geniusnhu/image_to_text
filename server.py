@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import shutil
 import os, io
 import pandas as pd
+import numpy as np
 from torch_utils import get_classification
 
 
@@ -17,14 +18,6 @@ app.mount("/images", StaticFiles(directory="images"), name="images")
 def get_image(x):
   return x.split(', ')[0]
 
-"""df_train = pd.read_csv('full_set.csv')
-sub_test_list = list(df_train['Image'].map(lambda x: get_image(x)))
-embeddings = torch.load('embeddings.pt')
-PATH = 'model_onnx.onnx'
-ort_session = onnxruntime.InferenceSession(PATH)
-input_name = ort_session.get_inputs()[0].name"""
-
-
 ALLOWED_EXTENSION = {'jpg', 'png', 'pdf', 'tif'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSION
@@ -33,12 +26,14 @@ def allowed_file(filename):
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
 @app.post("/extract_text")
 async def predict(image: UploadFile = File(...)):
     if not allowed_file(image.filename):
         return {"filename": image.filename, 'error': 'format is not supported ! ! !'}
 
-    contents = _save_file_to_disk(image, path="temp", save_as="temp")
+    #contents = _save_file_to_disk(image, path="temp", save_as="temp")
+    contents = image.file
     result = await get_classification(contents)
     #response = StreamingResponse(
     #    io.StringIO(result.to_csv(index=False)),
