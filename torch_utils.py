@@ -1,3 +1,7 @@
+#!pip install pymupdf
+#!pip install tools
+#!pip install frontend
+
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices.vision.computervision.models import OperationStatusCodes
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
@@ -14,15 +18,38 @@ from pathlib import Path
 import argparse
 import imutils
 import time
+import fitz
 #import matplotlib.pyplot as plt
 
 
 
-async def get_classification(image_bytes):
+async def get_classification(image_bytes, name):
+
+    if name.split('.')[-1] != 'pdf':
+        image = Image.open(image_bytes).convert('RGB')
+        image = np.array(image)
+    else:
+        print(image_bytes)
+        doc = fitz.open(stream=image_bytes.read(), filetype="pdf")
+        for i in range(len(doc)):
+             for img in doc.getPageImageList(i):
+                 xref = img[0]
+                 image = fitz.Pixmap(doc, xref)
+                 if image.n < 5:
+                     image.pil_save('images/from_pdf.png', optimize=True, dpi=(300, 300))
+                     #print('Saved images !')
+
+                 else:               # CMYK: convert to RGB first
+                     image = fitz.Pixmap(fitz.csRGB, image)
+                     image.pil_save('images/from_pdf.png', optimize=True, dpi=(300, 300))
+                     #print('Saved images !')
+                     image = None
+        image = Image.open('images/from_pdf.png').convert('RGB')
+        image = np.array(image)
+
     # Detect table
     #image = cv2.imread(image)
-    image = Image.open(image_bytes).convert('RGB')
-    image = np.array(image)
+    #image = Image.open(image_bytes).convert('RGB')
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 11))
     gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -69,14 +96,6 @@ async def get_classification(image_bytes):
     for j in range(result.shape[1]):
         crop_img = table[int(68 / 0.5 * scale_percent / 100):int(595/0.5 * scale_percent / 100), columns_px[j*2]:columns_px[j*2+1]]
         cv2.imwrite(images_folder + 'crop_img{}.png'.format(j), crop_img)
-        #im = Image.fromarray(crop_img)
-        #tmpFile = io.BytesIO()
-        #cv2.imwrite(tmpFile, crop_img)
-        #plt.savefig(tmpFile, format='png')
-        #im.save(tmpFile, "PNG")
-        #encoded_img_data = base64.b64encode(tmpFile.getvalue())
-        #tmpFile.seek(0)
-        #tmpFile = tmpFile.read()
 
         # initiate top and bottom pixel
         height, weight , _ = crop_img.shape
@@ -103,6 +122,22 @@ async def get_classification(image_bytes):
         j = int(read_image_path.split('/')[-1].split('.')[0][-1])
         if j == 0:
             text = [line.text.replace(' ','-') for line in read_result.analyze_result.read_results[0].lines]
+            print(text)
+            for idx, x in enumerate(text):
+                if x.count('-')==1:
+                    len1 = len(text[idx-1].split('-')[0])
+                    if text[idx-1].count('-') == 2:
+                        len2 = len(text[idx-1].split('-')[1])
+                        #len3 = len(text[idx-1].split('-')[-1])
+                    else:
+                        len2 = len(text[idx-1].split('-')[1])
+                        #len3 = 0
+
+                    if len(x.split('-')[0]) > len1:
+                        text[idx] = x.split('-')[0][:len1] + '-' + x.split('-')[0][len1:]  + '-'+ x.split('-')[1]
+                    elif len(x.split('-')[1]) > len2:
+                        text[idx] = x.split('-')[0]  + '-'+ x.split('-')[1][:len2]+ '-' + x.split('-')[1][len2:]
+
         elif j==2:
             text = [line.text.replace('+','*') for line in read_result.analyze_result.read_results[0].lines]
 
