@@ -29,7 +29,6 @@ async def get_classification(image_bytes, name):
         image = Image.open(image_bytes).convert('RGB')
         image = np.array(image)
     else:
-        print(image_bytes)
         doc = fitz.open(stream=image_bytes.read(), filetype="pdf")
         for i in range(len(doc)):
              for img in doc.getPageImageList(i):
@@ -122,7 +121,6 @@ async def get_classification(image_bytes, name):
         j = int(read_image_path.split('/')[-1].split('.')[0][-1])
         if j == 0:
             text = [line.text.replace(' ','-') for line in read_result.analyze_result.read_results[0].lines]
-            print(text)
             for idx, x in enumerate(text):
                 if x.count('-')==1:
                     len1 = len(text[idx-1].split('-')[0])
