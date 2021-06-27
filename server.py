@@ -34,7 +34,7 @@ async def predict(image: UploadFile = File(...)):
 
     #contents = _save_file_to_disk(image, path="temp", save_as="temp")
     contents = image.file
-    result = await get_classification(contents)
+    result = await get_classification(contents, image.filename)
     #response = StreamingResponse(
     #    io.StringIO(result.to_csv(index=False)),
     #    media_type="text/csv",
