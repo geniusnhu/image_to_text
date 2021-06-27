@@ -12,7 +12,10 @@ python-multipart==0.0.5
 uvloop==0.14.0
 numpy==1.20.1
 pandas==1.2.3
-opencv-python-headless==4.5.2.52
+opencv-contrib-python 4.5.2.54
 Pillow==8.2.0
 azure-cognitiveservices-vision-computervision==0.9.0
 imutils==0.5.4
+PyMuPDF==1.18.14
+tools==0.1.9
+frontend==0.0.3
